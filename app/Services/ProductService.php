@@ -47,10 +47,7 @@ class ProductService
 
     public function destroy($id)
     {
-        $product = Product::find($id);
-        if($product === null) {
-            throw new EntityNotFoundException();
-        }
+        $product = $this->getProductById($id);
         $product->delete();
     }
 

@@ -942,4 +942,57 @@ class ProductControllerTest extends TestCase
         $this->assertDatabaseCount('products', 1);
         $this->assertDatabaseHas('products', compact('id', 'name', 'description', 'price'));
     }
+
+    public function test_destroy_should_return_unhauthorized_when_user_is_not_logged_in(): void
+    {
+        Product::factory()->create();
+        $response = $this->deleteJson('/api/products/1');
+
+        $response->assertUnauthorized();
+        $this->assertDatabaseCount('products', 1);
+    }
+
+    public function test_destroy_should_return_forbidden_when_a_normal_user_is_logged_in(): void
+    {
+        $token = $this->getUserToken();
+        Product::factory()->create();
+        $response = $this->withToken($token)->deleteJson('/api/products/1');
+
+        $response->assertForbidden();
+        $this->assertDatabaseCount('products', 1);
+    }
+
+    public function test_destroy_should_return_forbidden_when_worker_is_logged_in(): void
+    {
+        $token = $this->getWorkerToken();
+        Product::factory()->create();
+        $response = $this->withToken($token)->deleteJson('/api/products/1');
+
+        $response->assertForbidden();
+        $this->assertDatabaseCount('products', 1);
+    }
+
+    public function test_destroy_should_return_not_found_when_admin_is_logged_in_but_id_does_not_exists(): void
+    {
+        $token = $this->getAdminToken();
+        Product::factory()->create();
+        $response = $this->withToken($token)->deleteJson('/api/products/2');
+
+        $response->assertNotFound();
+        $response->assertJson(fn(AssertableJson $json) =>
+            $json->where('message', 'Product not found')
+        );
+        $this->assertDatabaseCount('products', 1);
+    }
+
+    public function test_destroy_should_remove_product_from_database_when_id_exits_and_admin_is_logged_in(): void
+    {
+        $token = $this->getAdminToken();
+        Product::factory(2)->create();
+        $response = $this->withToken($token)->deleteJson('/api/products/2');
+
+        $response->assertNoContent();
+        $this->assertDatabaseCount('products', 1);
+        $this->assertDatabaseMissing('products', ['id' => 2]);
+    }
 }

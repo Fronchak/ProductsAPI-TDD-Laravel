@@ -14,8 +14,9 @@ class ProductController extends Controller
 
     public function __construct(ProductService $productService)
     {
-        $this->middleware('jwt.auth')->only(['store', 'update']);
+        $this->middleware('jwt.auth')->only(['store', 'update', 'destroy']);
         $this->middleware('role:worker|admin')->only(['store', 'update']);
+        $this->middleware('role:admin')->only('destroy');
         $this->productService = $productService;
     }
     /**
@@ -56,8 +57,9 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product)
+    public function destroy($id)
     {
-        //
+        $this->productService->destroy($id);
+        return response('', 204);
     }
 }

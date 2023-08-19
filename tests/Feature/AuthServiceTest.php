@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 class AuthServiceTest extends TestCase
 {
-    private Authservice $authService;
+    private AuthService $authService;
     use RefreshDatabase;
 
     protected function setUp(): void

@@ -2,9 +2,10 @@
 
 namespace App\Mappers;
 
+use App\Interfaces\ProductMapperInterface;
 use App\Models\Product;
 
-class ProductMapper
+class ProductMapper implements ProductMapperInterface
 {
     public function mapToDTO(Product $product): array
     {

@@ -133,4 +133,86 @@ class AuthControllerTest extends TestCase
         );
         $response->assertJsonPath('errors.email.0', 'The email has already been taken.');
     }
+
+    public function test_login_should_return_unprocessable_when_email_is_empty(): void
+    {
+        $response = $this->postJson('/api/auth/login', [
+            'email' => '',
+            'password' => '1234'
+        ]);
+
+        $response->assertUnprocessable();
+        $response->assertJson(fn (AssertableJson $json) =>
+            $json->has('message')
+                ->has('errors')
+                ->etc()
+        );
+        $response->assertJsonPath('errors.email.0', 'The email is required.');
+    }
+
+    public function test_login_should_return_unprocessable_when_password_is_empty(): void
+    {
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'user@gmail.com',
+            'password' => ''
+        ]);
+
+        $response->assertUnprocessable();
+        $response->assertJson(fn (AssertableJson $json) =>
+            $json->has('message')
+                ->has('errors')
+                ->etc()
+        );
+        $response->assertJsonPath('errors.password.0', 'The password is required.');
+    }
+
+    public function test_login_should_return_unhauthorized_when_password_is_wrong(): void
+    {
+        User::factory()->create([
+            'email' => 'user@gmail.com',
+            'password' => bcrypt('123456')
+        ]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'user@gmail.com',
+            'password' => '12345'
+        ]);
+
+        $response->assertUnauthorized();
+        $response->assertJson(fn (AssertableJson $json) =>
+            $json->where('message', 'Invalid email or password')
+        );
+    }
+
+    public function test_login_should_return_unhauthorized_when_email_does_not_exists(): void
+    {
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'user@gmail.com',
+            'password' => '12345'
+        ]);
+
+        $response->assertUnauthorized();
+        $response->assertJson(fn (AssertableJson $json) =>
+            $json->where('message', 'Invalid email or password')
+        );
+    }
+
+    public function test_login_should_return_token_when_password_is_correct(): void
+    {
+        User::factory()->create([
+            'email' => 'user@gmail.com',
+            'password' => bcrypt('123456')
+        ]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'user@gmail.com',
+            'password' => '123456'
+        ]);
+
+        $response->assertSuccessful();
+        $response->assertJson(fn (AssertableJson $json) =>
+            $json->where('access_token', fn(string $token) => str($token)->isNotEmpty())
+                ->etc()
+        );
+    }
 }

@@ -26,7 +26,7 @@ class AuthService
     protected function authenticate($credentials) {
         $token = auth()->attempt($credentials);
         if(!$token) {
-            throw new UnhauthorizationException();
+            throw new UnhauthorizationException('Invalid email or password');
         }
         return [
             'access_token' => $token,

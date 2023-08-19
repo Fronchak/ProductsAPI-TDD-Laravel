@@ -19,7 +19,7 @@ class ProductService
     {
         $product = Product::find($id);
         if($product === null) {
-            throw new EntityNotFoundException();
+            throw new EntityNotFoundException('Product not found');
         }
         return $this->productMapper->mapToDTO($product);
     }

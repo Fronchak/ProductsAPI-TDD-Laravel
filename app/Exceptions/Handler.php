@@ -26,5 +26,17 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+
+        $this->renderable(function (\Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException $e, $request) {
+            return response()->json([
+                'message' => 'You must be authenticated to access this content',
+            ], 401);
+        });
+
+        $this->renderable(function (\Spatie\Permission\Exceptions\UnauthorizedException $e, $request) {
+            return response()->json([
+                'message' => 'You do not have the required authorization'
+            ], 403);
+        });
     }
 }

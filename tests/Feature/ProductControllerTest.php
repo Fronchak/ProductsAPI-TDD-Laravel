@@ -943,6 +943,7 @@ class ProductControllerTest extends TestCase
         $this->assertDatabaseHas('products', compact('id', 'name', 'description', 'price'));
     }
 
+    //DESTROY TESTS
     public function test_destroy_should_return_unhauthorized_when_user_is_not_logged_in(): void
     {
         Product::factory()->create();
@@ -994,5 +995,65 @@ class ProductControllerTest extends TestCase
         $response->assertNoContent();
         $this->assertDatabaseCount('products', 1);
         $this->assertDatabaseMissing('products', ['id' => 2]);
+    }
+
+    //INDEX TESTS
+    public function test_index_should_use_default_pagination_values_when_no_params_specified(): void
+    {
+        Product::factory(10)->create();
+        $response = $this->getJson('/api/products');
+
+        $response->assertSuccessful();
+        $response->assertJson(fn(AssertableJson $json) =>
+            $json->where('total', 10)
+                ->where('per_page', 4)
+                ->where('current_page', 1)
+                ->where('last_page', 3)
+                ->whereType('data', 'array')
+                ->etc()
+        );
+    }
+
+    public function test_index_should_use_param_values(): void
+    {
+        Product::factory(30)->create();
+        $response = $this->getJson('/api/products?size=5&page=4');
+
+        $response->assertSuccessful();
+        $response->assertJson(fn(AssertableJson $json) =>
+            $json->where('total', 30)
+                ->where('per_page', 5)
+                ->where('current_page', 4)
+                ->where('last_page', 6)
+                ->whereType('data', 'array')
+                ->etc()
+        );
+    }
+
+    public function test_index_filter_query_is_been_used_to_filter_result_pagination(): void
+    {
+        Product::factory()->create(['name' => 'Harry Potter 1', 'description' => 'Description']);
+        Product::factory()->create(['name' => 'Senhor dos anéis 1', 'description' => 'Description']);
+        Product::factory()->create(['name' => 'Harry Potter 2', 'description' => 'Description']);
+        Product::factory()->create(['name' => 'Senhor dos anéis 2', 'description' => 'Description']);
+        $product5 = Product::factory()->create(['name' => 'Harry Potter 3', 'description' => 'Description']);
+        Product::factory()->create(['name' => 'Senhor dos anéis 3', 'description' => 'Description']);
+        $product7 = Product::factory()->create(['name' => 'Interestelar', 'description' => 'Description Potter ...']);
+        Product::factory()->create(['name' => 'Mad max', 'description' => 'Description']);
+        Product::factory()->create(['name' => 'Harry Potter 4', 'description' => 'Description']);
+
+        $response = $this->getJson('/api/products?size=2&page=2&filter=Potter');
+
+        $response->assertSuccessful();
+        $response->assertJson(fn(AssertableJson $json) =>
+            $json->where('total', 5)
+                ->where('per_page', 2)
+                ->where('current_page', 2)
+                ->where('last_page', 3)
+                ->whereType('data', 'array')
+                ->etc()
+        );
+        $response->assertJsonPath('data.0.id', $product5->id);
+        $response->assertJsonPath('data.1.id', $product7->id);
     }
 }

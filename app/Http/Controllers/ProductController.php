@@ -22,9 +22,14 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $size = $request->query('size', 4);
+        $page = $request->query('page', 1);
+        $filter = $request->query('filter', '');
+
+        $pagination = $this->productService->index($filter, $size, $page);
+        return response($pagination);
     }
 
     /**

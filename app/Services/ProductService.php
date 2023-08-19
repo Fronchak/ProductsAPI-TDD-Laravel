@@ -17,11 +17,17 @@ class ProductService
 
     public function show($id)
     {
+        $product = $this->getProductById($id);
+        return $this->productMapper->mapToDTO($product);
+    }
+
+    private function getProductById($id): Product
+    {
         $product = Product::find($id);
         if($product === null) {
             throw new EntityNotFoundException('Product not found');
         }
-        return $this->productMapper->mapToDTO($product);
+        return $product;
     }
 
     public function store(array $data)
@@ -33,10 +39,7 @@ class ProductService
 
     public function update(array $data, $id)
     {
-        $product = Product::find($id);
-        if($product === null) {
-            throw new EntityNotFoundException();
-        }
+        $product = $this->getProductById($id);
         $product->fill($data);
         $product->update();
         return $this->productMapper->mapToDTO($product);

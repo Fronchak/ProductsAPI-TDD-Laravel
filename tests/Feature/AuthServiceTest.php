@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Exceptions\UnhauthorizationException;
 use App\Models\User;
-use App\Services\Authservice;
+use App\Services\AuthService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;

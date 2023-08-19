@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Exceptions\UnhauthorizationException;
 use App\Models\User;
 
-class Authservice
+class AuthService
 {
     public function register($data)
     {
@@ -26,7 +26,7 @@ class Authservice
     protected function authenticate($credentials) {
         $token = auth()->attempt($credentials);
         if(!$token) {
-            throw new UnhauthorizationException("");
+            throw new UnhauthorizationException();
         }
         return [
             'access_token' => $token,

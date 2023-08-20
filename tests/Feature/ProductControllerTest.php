@@ -47,7 +47,7 @@ class ProductControllerTest extends TestCase
         $json->has('message')
             ->has('errors')
             ->etc()
-    );
+        );
     }
 
     //SHOW TESTS

@@ -15,7 +15,7 @@ class UserService
     {
         $user = User::find($id);
         if($user === null) {
-            throw new EntityNotFoundException();
+            throw new EntityNotFoundException('User not found');
         }
         return UserService::mapToDTO($user);
     }

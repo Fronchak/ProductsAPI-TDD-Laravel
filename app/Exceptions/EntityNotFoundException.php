@@ -2,18 +2,10 @@
 
 namespace App\Exceptions;
 
-use Exception;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-
-class EntityNotFoundException extends Exception
+class EntityNotFoundException extends ApiException
 {
-    private int $status = 404;
-
-    public function render(Request $request): Response
+    protected function getStatus(): int
     {
-        return response([
-            'message' => $this->message,
-        ], $this->status);
+        return 404;
     }
 }

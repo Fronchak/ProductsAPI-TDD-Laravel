@@ -2,9 +2,10 @@
 
 namespace App\Exceptions;
 
-use Exception;
-
-class ForbiddenException extends Exception
+class ForbiddenException extends ApiException
 {
-    //
+    protected function getStatus(): int
+    {
+        return 403;
+    }
 }

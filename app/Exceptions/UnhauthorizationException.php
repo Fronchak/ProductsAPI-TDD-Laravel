@@ -2,18 +2,10 @@
 
 namespace App\Exceptions;
 
-use Exception;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-
-class UnhauthorizationException extends Exception
+class UnhauthorizationException extends ApiException
 {
-    private int $status = 401;
-
-    public function render(Request $request): Response
+    protected function getStatus(): int
     {
-        return response([
-            'message' => $this->message,
-        ], $this->status);
+        return 401;
     }
 }

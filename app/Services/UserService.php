@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Exceptions\EntityNotFoundException;
 use App\Exceptions\ForbiddenException;
-use App\Exceptions\UnprocessableException;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Spatie\Permission\Models\Role;
@@ -13,11 +12,17 @@ class UserService
 {
     public function show($id)
     {
+        $user = $this->getUserById($id);
+        return UserService::mapToDTO($user);
+    }
+
+    private function getUserById($id): User
+    {
         $user = User::find($id);
         if($user === null) {
             throw new EntityNotFoundException('User not found');
         }
-        return UserService::mapToDTO($user);
+        return $user;
     }
 
     public static function mapToDTO(User $user): array
@@ -51,18 +56,15 @@ class UserService
 
     public function updateRoles($id, array $roleIds)
     {
-        $user = User::find($id);
-        if($user === null) {
-            throw new EntityNotFoundException();
-        }
+        $user = $this->getUserById($id);
         $authenticatedUser = auth()->user();
         if($user->id === $authenticatedUser->id) {
-            throw new ForbiddenException();
+            throw new ForbiddenException('You cannot update your own roles.');
         }
         $authenticatedUserIdAdmin = $authenticatedUser->hasRole('admin');
         $userBeenUpdatedIsAdmin = $user->hasRole('admin');
         if($userBeenUpdatedIsAdmin && !$authenticatedUserIdAdmin) {
-            throw new ForbiddenException();
+            throw new ForbiddenException("You don't have permission to update the roles of a admin.");
         }
         $roles = Role::whereIn('id', $roleIds)->get();
         $adminRole = $roles->first(function(Role $role) {
@@ -71,7 +73,7 @@ class UserService
             }
         });
         if($adminRole !== null && !$authenticatedUserIdAdmin) {
-            throw new ForbiddenException();
+            throw new ForbiddenException("You don't have permission to give admin to others users.");
         }
 
         $user->syncRoles($roles);

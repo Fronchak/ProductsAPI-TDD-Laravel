@@ -32,4 +32,6 @@ Route::group([
     'prefix' => 'users'
 ], function() {
     Route::get('{id}', [UserController::class, 'show']);
+    Route::get('', [UserController::class, 'index']);
+    Route::put('{id}/roles', [UserController::class, 'updateRoles']);
 });
